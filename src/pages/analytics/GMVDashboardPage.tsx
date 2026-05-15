@@ -3,12 +3,45 @@ import Card, { CardHeader, CardTitle } from '../../components/ui/Card'
 import GMVLineChart from '../../components/charts/GMVLineChart'
 import ServiceDonutChart from '../../components/charts/ServiceDonutChart'
 import { projections, historicalGMV } from '../../data/analytics'
-import { formatBillionVND } from '../../utils/formatters'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { TrendingUp } from 'lucide-react'
+import { mockBookings } from '../../data/bookings'
+import { formatBillionVND, formatVND } from '../../utils/formatters'
+import { useAuthStore } from '../../store/authStore'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { TrendingUp, DollarSign } from 'lucide-react'
+import type { ServiceType } from '../../types'
+
+const serviceLabels: Record<ServiceType, string> = {
+  flight: 'Máy bay', bus: 'Xe khách', taxi: 'Taxi', movie: 'Phim', hotel: 'Khách sạn',
+}
+
+function buildServiceRevenueData() {
+  const services: ServiceType[] = ['flight', 'bus', 'taxi', 'movie', 'hotel']
+  return services.map(svc => {
+    const bks = mockBookings.filter(b => b.serviceType === svc)
+    const commission = bks.reduce((s, b) => s + b.commission, 0)
+    const markup = bks.reduce((s, b) => s + (b.markup ?? 0), 0)
+    const gmv = bks.reduce((s, b) => s + b.totalAmount, 0)
+    return { name: serviceLabels[svc], commission, markup, gmv, profit: commission + markup }
+  })
+}
+
+type Tab = 'monthly' | 'yearly' | 'revenue'
 
 export default function GMVDashboardPage() {
-  const [period, setPeriod] = useState<'monthly' | 'yearly'>('monthly')
+  const [tab, setTab] = useState<Tab>('monthly')
+  const user = useAuthStore(s => s.user)
+  const isF1 = user?.role === 'F1'
+
+  const serviceData = buildServiceRevenueData()
+  const totalCommission = serviceData.reduce((s, d) => s + d.commission, 0)
+  const totalMarkup = serviceData.reduce((s, d) => s + d.markup, 0)
+  const totalProfit = totalCommission + totalMarkup
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'monthly', label: 'Theo tháng' },
+    { id: 'yearly', label: 'Theo năm' },
+    { id: 'revenue', label: 'Hoa hồng & Markup' },
+  ]
 
   return (
     <div className="space-y-6">
@@ -20,9 +53,10 @@ export default function GMVDashboardPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Tổng giá trị giao dịch — Kế hoạch 2026–2028</p>
         </div>
         <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
-          {(['monthly', 'yearly'] as const).map(p => (
-            <button key={p} onClick={() => setPeriod(p)} className={`px-4 py-2 transition-colors ${period === p ? 'bg-vnpay-blue text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
-              {p === 'monthly' ? 'Theo tháng' : 'Theo năm'}
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`px-4 py-2 transition-colors ${tab === t.id ? 'bg-vnpay-blue text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+              {t.label}
             </button>
           ))}
         </div>
@@ -47,7 +81,7 @@ export default function GMVDashboardPage() {
         ))}
       </div>
 
-      {period === 'monthly' ? (
+      {tab === 'monthly' && (
         <>
           <Card padding={false}>
             <div className="p-6 pb-2"><CardHeader><CardTitle>GMV hàng tháng 2025 vs 2026</CardTitle></CardHeader></div>
@@ -70,7 +104,9 @@ export default function GMVDashboardPage() {
             </Card>
           </div>
         </>
-      ) : (
+      )}
+
+      {tab === 'yearly' && (
         <Card padding={false}>
           <div className="p-6 pb-2"><CardHeader><CardTitle>GMV lịch sử & kế hoạch (tỷ VND)</CardTitle></CardHeader></div>
           <div className="px-4 pb-6">
@@ -85,6 +121,103 @@ export default function GMVDashboardPage() {
             </ResponsiveContainer>
           </div>
         </Card>
+      )}
+
+      {tab === 'revenue' && (
+        <div className="space-y-6">
+          {/* Summary KPIs */}
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { label: 'Tổng hoa hồng VNPAY', value: formatVND(totalCommission), color: 'text-green-600 dark:text-green-400', icon: DollarSign },
+              { label: isF1 ? 'Tổng markup đại lý' : 'Markup của bạn', value: formatVND(totalMarkup), color: 'text-purple-600 dark:text-purple-400', icon: DollarSign },
+              { label: 'Tổng lợi nhuận', value: formatVND(totalProfit), color: 'text-amber-600 dark:text-amber-400', icon: TrendingUp },
+            ].map(k => (
+              <Card key={k.label}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{k.label}</p>
+                    <p className={`text-xl font-bold mt-1 ${k.color}`}>{k.value}</p>
+                    <p className="text-xs text-gray-400 mt-1">Tháng 5/2026 (15 ngày)</p>
+                  </div>
+                  <k.icon className={`w-5 h-5 mt-1 ${k.color}`} />
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Commission by service */}
+          <Card padding={false}>
+            <div className="p-6 pb-2">
+              <CardHeader><CardTitle>Hoa hồng theo dịch vụ (VND)</CardTitle></CardHeader>
+            </div>
+            <div className="px-4 pb-6">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={serviceData} margin={{ top: 4, right: 16, bottom: 4, left: 16 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : String(v)} />
+                  <Tooltip formatter={(v) => [formatVND(Number(v ?? 0)), '']} />
+                  <Legend />
+                  <Bar dataKey="commission" name="Hoa hồng VNPAY" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  {isF1 && <Bar dataKey="markup" name="Markup đại lý" fill="#7c3aed" radius={[4, 4, 0, 0]} />}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* Per-service breakdown table */}
+          <Card padding={false}>
+            <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Chi tiết theo dịch vụ</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-700/50">
+                    <th className="text-left px-4 py-3 text-gray-600 dark:text-gray-300 font-semibold">Dịch vụ</th>
+                    <th className="text-right px-4 py-3 text-gray-600 dark:text-gray-300 font-semibold">GMV</th>
+                    <th className="text-right px-4 py-3 text-green-600 dark:text-green-400 font-semibold">Hoa hồng</th>
+                    {isF1 && <th className="text-right px-4 py-3 text-purple-600 dark:text-purple-400 font-semibold">Markup</th>}
+                    <th className="text-right px-4 py-3 text-amber-600 dark:text-amber-400 font-semibold">Lợi nhuận</th>
+                    <th className="text-right px-4 py-3 text-gray-500 dark:text-gray-400 font-semibold">Take Rate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                  {serviceData.map(row => (
+                    <tr key={row.name} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10">
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.name}</td>
+                      <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">{formatVND(row.gmv)}</td>
+                      <td className="px-4 py-3 text-right text-green-600 dark:text-green-400 font-medium">
+                        {row.commission > 0 ? `+${formatVND(row.commission)}` : '—'}
+                      </td>
+                      {isF1 && (
+                        <td className="px-4 py-3 text-right text-purple-600 dark:text-purple-400 font-medium">
+                          {row.markup > 0 ? `+${formatVND(row.markup)}` : '—'}
+                        </td>
+                      )}
+                      <td className="px-4 py-3 text-right text-amber-600 dark:text-amber-400 font-bold">
+                        {row.profit > 0 ? `+${formatVND(row.profit)}` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-500 dark:text-gray-400 text-xs">
+                        {row.gmv > 0 ? `${((row.commission / row.gmv) * 100).toFixed(2)}%` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 font-bold">
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-200">Tổng cộng</td>
+                    <td className="px-4 py-3 text-right text-gray-900 dark:text-white">{formatVND(serviceData.reduce((s, d) => s + d.gmv, 0))}</td>
+                    <td className="px-4 py-3 text-right text-green-600 dark:text-green-400">{totalCommission > 0 ? `+${formatVND(totalCommission)}` : '—'}</td>
+                    {isF1 && <td className="px-4 py-3 text-right text-purple-600 dark:text-purple-400">{totalMarkup > 0 ? `+${formatVND(totalMarkup)}` : '—'}</td>}
+                    <td className="px-4 py-3 text-right text-amber-600 dark:text-amber-400">{totalProfit > 0 ? `+${formatVND(totalProfit)}` : '—'}</td>
+                    <td className="px-4 py-3 text-right text-gray-500 dark:text-gray-400 text-xs">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </Card>
+        </div>
       )}
     </div>
   )

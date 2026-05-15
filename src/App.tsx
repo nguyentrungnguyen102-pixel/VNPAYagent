@@ -37,17 +37,26 @@ import CommissionConfigPage from './pages/admin/CommissionConfigPage'
 import KillSwitchPage from './pages/admin/KillSwitchPage'
 import CreditManagementPage from './pages/admin/CreditManagementPage'
 import FraudDetectionPage from './pages/admin/FraudDetectionPage'
+import UserManagementPage from './pages/admin/UserManagementPage'
 import MarkupConfigPage from './pages/agency/MarkupConfigPage'
 import F3ManagementPage from './pages/agency/F3ManagementPage'
+import AgencyUserPage from './pages/agency/AgencyUserPage'
 import GMVDashboardPage from './pages/analytics/GMVDashboardPage'
 import AgencyRankingPage from './pages/analytics/AgencyRankingPage'
 import TicketListPage from './pages/support/TicketListPage'
 import CreateTicketPage from './pages/support/CreateTicketPage'
 import TicketDetailPage from './pages/support/TicketDetailPage'
+import type { Role } from './types'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
   if (!isAuthenticated) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
+function RoleGuard({ roles, children }: { roles: Role[]; children: React.ReactNode }) {
+  const user = useAuthStore(s => s.user)
+  if (!user || !roles.includes(user.role)) return <Navigate to="/" replace />
   return <>{children}</>
 }
 
@@ -91,14 +100,24 @@ export default function App() {
           <Route path="wallet/history" element={<TransactionHistoryPage />} />
           <Route path="invoices/request" element={<InvoiceRequestPage />} />
           <Route path="invoices/:invoiceId" element={<InvoicePreviewPage />} />
-          <Route path="admin/commission" element={<CommissionConfigPage />} />
-          <Route path="admin/kill-switch" element={<KillSwitchPage />} />
-          <Route path="admin/credit" element={<CreditManagementPage />} />
-          <Route path="admin/fraud" element={<FraudDetectionPage />} />
-          <Route path="agency/markup" element={<MarkupConfigPage />} />
-          <Route path="agency/sellers" element={<F3ManagementPage />} />
+
+          {/* F1 only */}
+          <Route path="admin/users" element={<RoleGuard roles={['F1']}><UserManagementPage /></RoleGuard>} />
+          <Route path="admin/commission" element={<RoleGuard roles={['F1']}><CommissionConfigPage /></RoleGuard>} />
+          <Route path="admin/kill-switch" element={<RoleGuard roles={['F1']}><KillSwitchPage /></RoleGuard>} />
+          <Route path="admin/credit" element={<RoleGuard roles={['F1']}><CreditManagementPage /></RoleGuard>} />
+          <Route path="admin/fraud" element={<RoleGuard roles={['F1']}><FraudDetectionPage /></RoleGuard>} />
+          <Route path="analytics/ranking" element={<RoleGuard roles={['F1']}><AgencyRankingPage /></RoleGuard>} />
+
+          {/* F2 only */}
+          <Route path="agency/users" element={<RoleGuard roles={['F2']}><AgencyUserPage /></RoleGuard>} />
+          <Route path="agency/markup" element={<RoleGuard roles={['F1', 'F2']}><MarkupConfigPage /></RoleGuard>} />
+          <Route path="agency/sellers" element={<RoleGuard roles={['F1', 'F2']}><F3ManagementPage /></RoleGuard>} />
+
+          {/* Analytics */}
           <Route path="analytics/gmv" element={<GMVDashboardPage />} />
-          <Route path="analytics/ranking" element={<AgencyRankingPage />} />
+
+          {/* Support */}
           <Route path="support" element={<TicketListPage />} />
           <Route path="support/create" element={<CreateTicketPage />} />
           <Route path="support/:ticketId" element={<TicketDetailPage />} />

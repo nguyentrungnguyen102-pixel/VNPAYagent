@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '../../utils/cn'
 import { useAuthStore } from '../../store/authStore'
+import { APP_VERSION } from '../../utils/constants'
 import {
   LayoutDashboard, Plane, Bus, Car, Film, Hotel, BookOpen,
-  Wallet, Receipt, BarChart2, Settings, ShieldAlert, CreditCard,
-  Users, Sliders, Ticket, X, TrendingUp, AlertOctagon
+  Wallet, Receipt, BarChart2, ShieldAlert, CreditCard,
+  Users, Sliders, Ticket, X, TrendingUp, AlertOctagon, Users2
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -49,17 +50,17 @@ const navSections: NavSection[] = [
   },
   {
     title: 'Báo cáo',
-    roles: ['F1', 'F2'],
     items: [
       { to: '/analytics/gmv', icon: TrendingUp, label: 'GMV Dashboard' },
-      { to: '/analytics/ranking', icon: BarChart2, label: 'Xếp hạng đại lý' },
     ],
   },
   {
     title: 'Admin',
     roles: ['F1'],
     items: [
+      { to: '/admin/users', icon: Users2, label: 'Quản lý người dùng' },
       { to: '/admin/commission', icon: Sliders, label: 'Cấu hình hoa hồng' },
+      { to: '/analytics/ranking', icon: BarChart2, label: 'Xếp hạng đại lý' },
       { to: '/admin/kill-switch', icon: ShieldAlert, label: 'Kill Switch' },
       { to: '/admin/credit', icon: CreditCard, label: 'Hạn mức tín dụng' },
       { to: '/admin/fraud', icon: AlertOctagon, label: 'Phát hiện gian lận' },
@@ -69,6 +70,7 @@ const navSections: NavSection[] = [
     title: 'Đại lý',
     roles: ['F2'],
     items: [
+      { to: '/agency/users', icon: Users2, label: 'Người dùng' },
       { to: '/agency/markup', icon: Sliders, label: 'Cấu hình markup' },
       { to: '/agency/sellers', icon: Users, label: 'Quản lý CTV' },
     ],
@@ -90,15 +92,17 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         'fixed lg:relative z-30 flex flex-col w-64 h-full bg-vnpay-navy dark:bg-gray-900 text-white transition-transform duration-300',
         open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden'
       )}>
-        <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-vnpay-red rounded-lg flex items-center justify-center font-bold text-white text-sm">VP</div>
-            <div>
-              <p className="text-sm font-bold leading-tight">VNPAYAgent</p>
-              <p className="text-xs text-blue-200 opacity-70">OS 2026</p>
-            </div>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <div className="flex items-center gap-2 min-w-0">
+            <img
+              src="./vnpay-logo.png"
+              alt="VNPAY"
+              className="h-9 w-auto object-contain flex-shrink-0"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
+            <p className="text-xs font-semibold text-blue-200/70 whitespace-nowrap">Agent OS</p>
           </div>
-          <button onClick={onClose} className="lg:hidden text-white/60 hover:text-white">
+          <button onClick={onClose} className="lg:hidden text-white/60 hover:text-white flex-shrink-0 ml-2">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -131,14 +135,15 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         {user && (
           <div className="px-4 py-3 border-t border-white/10">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-vnpay-blue flex items-center justify-center text-sm font-bold">
+              <div className="w-8 h-8 rounded-full bg-vnpay-blue flex items-center justify-center text-sm font-bold flex-shrink-0">
                 {user.name.charAt(0)}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-white truncate">{user.name}</p>
                 <p className="text-xs text-blue-200/60 truncate">{user.email}</p>
               </div>
             </div>
+            <p className="text-xs text-white/25 text-center mt-2">{APP_VERSION}</p>
           </div>
         )}
       </aside>

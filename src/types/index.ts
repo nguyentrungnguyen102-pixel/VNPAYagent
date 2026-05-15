@@ -223,3 +223,27 @@ export interface SupportTicket {
 }
 
 export type Scenario = 'success' | 'timeout' | 'empty' | 'price_changed' | 'hold_expired'
+
+export type AgencyUserRole = 'AgencyAdmin' | 'Manager' | 'Operator' | 'Viewer'
+
+export interface AgencyUserPermission {
+  canBook: boolean
+  canRefund: boolean
+  canTopup: boolean
+  canViewReports: boolean
+  canManageUsers: boolean
+  canConfigMarkup: boolean
+}
+
+export interface AgencyUser {
+  id: string
+  agencyId: string
+  name: string
+  email: string
+  phone: string
+  agencyRole: AgencyUserRole
+  permissions: AgencyUserPermission
+  status: 'Active' | 'Inactive' | 'Suspended'
+  createdAt: string
+  lastLoginAt?: string
+}
