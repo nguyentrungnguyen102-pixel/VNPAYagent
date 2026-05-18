@@ -1,5 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { monthlyData } from '../../data/analytics'
+import { monthlyData, type MonthlyGMV } from '../../data/analytics'
 
 interface TooltipPayload {
   color?: string
@@ -27,10 +27,11 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null
 }
 
-export default function GMVLineChart() {
+export default function GMVLineChart({ data }: { data?: MonthlyGMV[] }) {
+  const chartData = data ?? monthlyData
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <LineChart data={monthlyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+      <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis dataKey="label" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `${v}tỷ`} />

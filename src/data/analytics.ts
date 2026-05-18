@@ -37,6 +37,30 @@ export const historicalGMV = [
   { year: '2026 Dự báo', gmv: 6028 },
 ]
 
+export const agencyMonthlyData: Record<string, MonthlyGMV[]> = {
+  ag1: [
+    { month: '2026-01', label: 'T1/26', gmv2025: 68,  gmv2026: 89,  flight: 62, bus: 12, taxi: 8, movie: 5, hotel: 2 },
+    { month: '2026-02', label: 'T2/26', gmv2025: 54,  gmv2026: 78,  flight: 53, bus: 10, taxi: 7, movie: 5, hotel: 3 },
+    { month: '2026-03', label: 'T3/26', gmv2025: 82,  gmv2026: 105, flight: 74, bus: 14, taxi: 9, movie: 5, hotel: 3 },
+    { month: '2026-04', label: 'T4/26', gmv2025: 91,  gmv2026: 118, flight: 84, bus: 16, taxi: 10, movie: 5, hotel: 3 },
+    { month: '2026-05', label: 'T5/26', gmv2025: 44,  gmv2026: 58,  flight: 40, bus: 7,  taxi: 5,  movie: 4, hotel: 2 },
+  ],
+  ag2: [
+    { month: '2026-01', label: 'T1/26', gmv2025: 52,  gmv2026: 69,  flight: 49, bus: 9,  taxi: 6, movie: 3, hotel: 2 },
+    { month: '2026-02', label: 'T2/26', gmv2025: 41,  gmv2026: 58,  flight: 41, bus: 8,  taxi: 5, movie: 3, hotel: 1 },
+    { month: '2026-03', label: 'T3/26', gmv2025: 63,  gmv2026: 82,  flight: 59, bus: 11, taxi: 7, movie: 3, hotel: 2 },
+    { month: '2026-04', label: 'T4/26', gmv2025: 71,  gmv2026: 94,  flight: 67, bus: 13, taxi: 8, movie: 4, hotel: 2 },
+    { month: '2026-05', label: 'T5/26', gmv2025: 35,  gmv2026: 47,  flight: 33, bus: 6,  taxi: 4, movie: 3, hotel: 1 },
+  ],
+  ag3: [
+    { month: '2026-01', label: 'T1/26', gmv2025: 108, gmv2026: 143, flight: 112, bus: 14, taxi: 10, movie: 5, hotel: 2 },
+    { month: '2026-02', label: 'T2/26', gmv2025: 92,  gmv2026: 127, flight: 98,  bus: 12, taxi: 9,  movie: 5, hotel: 3 },
+    { month: '2026-03', label: 'T3/26', gmv2025: 131, gmv2026: 167, flight: 130, bus: 17, taxi: 11, movie: 6, hotel: 3 },
+    { month: '2026-04', label: 'T4/26', gmv2025: 148, gmv2026: 191, flight: 149, bus: 19, taxi: 13, movie: 7, hotel: 3 },
+    { month: '2026-05', label: 'T5/26', gmv2025: 75,  gmv2026: 98,  flight: 76,  bus: 10, taxi: 7,  movie: 4, hotel: 1 },
+  ],
+}
+
 export const serviceBreakdown2026 = [
   { name: 'Vé máy bay', value: 4500, color: '#003b73' },
   { name: 'Vé phim', value: 430, color: '#e31e24' },
